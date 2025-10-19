@@ -1,16 +1,15 @@
 #include "taskmaster.h"
 #include "ft_printf.h"
 
-void    process_monitoring(t_program_config *config)
+void    process_monitoring(t_program_config *config, char *command)
 {
+    (void)command;
     if (config->process && g_child_status_changed == 0)
     {
         pthread_mutex_lock(&output_mutex);
         ft_printf("Estoy dentro y monitoreo config:\n");
         ft_printf("[COMMAND] ( %s )\n", config->command);
         ft_printf("[NAME] ( %s )\n", config->name);
-        ft_printf("[ENV] ( %p )\n", config->env);
-        ft_printf("[... ] ( ... )\n");
         pthread_mutex_unlock(&output_mutex);
     }
     return;

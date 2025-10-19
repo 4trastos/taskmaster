@@ -1,5 +1,5 @@
-#include "taskmaster.h"
-#include "ft_printf.h"
+#include "../incl/taskmaster.h"
+#include "../incl/ft_printf.h"
 
 // 1. test_crash.c (Se crashea inmediatamente)
 

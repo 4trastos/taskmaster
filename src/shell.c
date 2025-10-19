@@ -65,10 +65,7 @@ void    taskmaster_main_loop(t_program_config *config)
     while (1)
     {
         if (g_child_status_changed)
-        {
-            g_child_status_changed = 0;
             child_status_change(config);
-        }
 
         if (g_sigint_received)
         {
@@ -78,7 +75,6 @@ void    taskmaster_main_loop(t_program_config *config)
             rl_on_new_line();
             rl_redisplay();
         }
-
         if (user_input_ready())
         {
             if (!prompt_loop(config))

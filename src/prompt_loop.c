@@ -48,13 +48,13 @@ int    status_comand(t_program_config *config, char *command)
 bool    prompt_loop(t_program_config *config)
 {
     char    *command;
-
+    
     command = no_last_space(readline(PROMPT));
     if (!command)
         return (false);
     add_history(command);
     if (status_comand(config, command) == -1)
         return (false);
-    process_monitoring(config);
+    process_monitoring(config, command);
     return (true);
 }

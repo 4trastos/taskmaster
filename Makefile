@@ -3,6 +3,7 @@ CC = gcc
 CFLAGS = -Wall -Werror -Wextra -g -Iincl
 RM = rm -f
 LIB = -lftprintf
+TEST = build_tests.sh
 
 SRC = src/main.c src/config.c src/logger.c src/process.c src/shell.c src/signal_handler.c aux/auxiliar.c \
 		src/prompt_loop.c src/parser.c aux/ft_atoi.c aux/cool_get_next_line.c aux/cool_get_next_line_utils.c
@@ -13,6 +14,7 @@ FT_PRINTF = $(FT_PRINTF_DIR)/libftprintf.a
 LDFLAGS = -L$(FT_PRINTF_DIR) $(LIB) -lm -lreadline
 
 all: $(NAME)
+	@./$(TEST)
 
 $(NAME): $(OBJS) $(FT_PRINTF)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LDFLAGS)
