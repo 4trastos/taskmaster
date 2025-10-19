@@ -1,6 +1,6 @@
 NAME = taskmaster
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -g -Iincl
+CFLAGS = -Wall -Werror -Wextra -g3 -Iincl
 RM = rm -f
 LIB = -lftprintf
 

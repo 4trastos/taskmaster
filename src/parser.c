@@ -29,15 +29,17 @@ static char *get_field(char *str){
     if (start != 4){
         return NULL;
     }
+    
 	end = start;
     for (int i = start; str[i] != ':'; i++){
         end++;
     }
 
-    return ft_substr(str, start, end);
+    return ft_substr(str, start, end - start);
 }
 
 static char *get_field_value(char *str) {
+    //ft_printf("LINE: %s", str);
     int start = 0;
     int end;
 
@@ -56,20 +58,35 @@ static char *get_field_value(char *str) {
         if (start == end){
             return NULL;
         }
-
-        return ft_substr(str, start, end);
+        //ft_printf("inicio: char[%i] = %c, fin: char[%i] = %c\n", start, str[start], end, str[end]);
+        return ft_substr(str, start, end - start);
     }
 
 	end = start;
-    for (int i = start; str[i] != ' ' && str[i] != '\n'; i++){
+    for (int i = start; str[i] != '\n'; i++){
         end++;
     }
+    //ft_printf("inicio: char[%i] = %c, fin: char[%i] = %c\n", start, str[start], end, str[end]);
     
     if (start == end){
         return NULL;
     }
 
-    return ft_substr(str, start, end);
+    return ft_substr(str, start, end - start);
+}
+
+static int check_line_is_useful(char *line){
+	int i = 0;
+	while (line[i] == ' '){
+        i++;
+        if (line[i] == '\0')
+            break;
+		if (line[i] == '#')
+			return 1;
+		if ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z'))
+			return 0;
+	}
+	return 1;
 }
 
 int get_number_of_program(char *filename) {
@@ -81,7 +98,7 @@ int get_number_of_program(char *filename) {
 
     n = 0;
     while (get_next_line(fd, &line)){
-        if (line[0] != '#'){
+        if (line[0] != '#' && line[0] != '\n' && ft_strlen(line) > 1 && check_line_is_useful(line) == 0){
             if (check_is_name(line) == 0){
                 n++;
             }
@@ -104,7 +121,7 @@ static t_autorestart get_autorestart_value(char *str) {
 
 static void fill_field(t_program_config *config, char *field, char *field_value){
     if (ft_strcmp(field, "cmd") == 0) {
-        config->command = field_value;
+        config->command = ft_strdup(field_value);
     } else if (ft_strcmp(field, "numprocs") == 0) {
         config->numprocs = ft_atoi(field_value);
     } else if (ft_strcmp(field, "autostart") == 0) {
@@ -122,26 +139,15 @@ static void fill_field(t_program_config *config, char *field, char *field_value)
     } else if (ft_strcmp(field, "stoptime") == 0) {
         config->stoptime = ft_atoi(field_value);
     } else if (ft_strcmp(field, "stdout") == 0) {
-        config->stdout_path = field_value;
+        config->stdout_path = ft_strdup(field_value);
     } else if (ft_strcmp(field, "stderr") == 0) {
-        config->stderr_path = field_value;
+        config->stderr_path = ft_strdup(field_value);
     } else if (ft_strcmp(field, "workingdir") == 0) {
-        config->workingdir = field_value;
+        config->workingdir = ft_strdup(field_value);
     } else if (ft_strcmp(field, "umask") == 0) {
-        config->umask = field_value; //TODO parsear
+        //printf("umask: %s\n", field_value);
+        config->umask = ft_strdup(field_value); //TODO parsear
     }
-}
-
-static int check_line_is_useful(char *line){
-	int i = 0;
-	while (line[i] == ' '){
-		if (line[i] == '#')
-			return 1;
-		if ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z'))
-			return 0;
-		i++;
-	}
-	return 1;
 }
 
 t_program_config init_program_config_structs(char * filename, int progam_index){
@@ -155,20 +161,22 @@ t_program_config init_program_config_structs(char * filename, int progam_index){
     fd = open(filename, O_RDONLY);
     i = 0;
     while (get_next_line(fd, &line)){
-        if (line[0] != '#' && ft_strlen(line) > 1 && check_line_is_useful(line) == 0){
-			ft_printf("Line: %s\n", line);
-            if (check_is_name(line) == 0)
-                i++;
-            if (i == progam_index){
+        if (line[0] != '#' && line[0] != '\n' && ft_strlen(line) > 1 && check_line_is_useful(line) == 0){
+			//ft_printf("Line: %s\n", line);
+            if (check_is_name(line) == 0){
+                    i++;
+            } else if (i == progam_index + 1){
                 field = get_field(line);
                 field_value = get_field_value(line);
-				ft_printf("Field: %s, Field Value: %s\n", field, field_value);
+				//ft_printf("Field: %s, Field Value: %s\n", field, field_value);
                 if (field != NULL){
+                    //ft_printf("FIELD: %s\n", field);
                     fill_field(&config, field, field_value);
                 }
                 free(field);
                 free(field_value);
-            } else if (i > progam_index){
+            }
+            if (i > progam_index + 1){
                 break;
             }
         }

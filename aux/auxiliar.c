@@ -1,23 +1,26 @@
 #include "taskmaster.h"
 #include "ft_printf.h"
 
-char* ft_substr(const char *src, int start, int length) {
-    int src_len = strlen(src);
+char* ft_substr(char *s, int start, int len)
+{
+	size_t	i;
+	char	*sb;
 
-    if (start < 0 || start >= src_len || length <= 0)
-        return NULL;
-
-    if (start + length > src_len)
-        length = src_len - start;
-
-    char *sub = malloc(length + 1);
-    if (sub == NULL)
-        return NULL;
-
-    strncpy(sub, src + start, length);
-    sub[length] = '\0';
-
-    return sub;
+	if ((size_t)start >= ft_strlen(s))
+		return (ft_strdup(""));
+	if ((size_t)len > ft_strlen(s) - start)
+		len = ft_strlen(s) - start;
+	sb = (char *)malloc(len + 1);
+	if (sb == NULL)
+		return (NULL);
+	i = 0;
+	while (i < (size_t)len)
+	{
+		sb[i] = s[start + i];
+		i++;
+	}
+	sb[i] = '\0';
+	return (sb);
 }
 
 int	ft_strcmp(const char *s1, const char *s2) {

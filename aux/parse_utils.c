@@ -4,21 +4,21 @@
 /**
  * @brief coge un array "[1, 2, 3]" y lo convierte a int arr[] = {1, 2, 3}
  */
-int *get_exit_codes(char *exit_codes_str) {
-    char *copy = strdup(exit_codes_str);
-    if (!copy)
+int *get_exit_codes(char *exit_codes_str)
+{
+    if (!exit_codes_str)
         return NULL;
 
-    char *start = ft_strchr(copy, '[');
-    char *end = ft_strchr(copy, ']');
+    // encontrar corchetes
+    char *start = strchr(exit_codes_str, '[');
+    char *end   = strchr(exit_codes_str, ']');
     if (!start || !end || end <= start)
-    {
-        free(copy);
         return NULL;
-    }
+
     *end = '\0';
     start++;
 
+    // contar cuántos números hay
     int count = 1;
     for (char *p = start; *p; p++)
         if (*p == ',')
@@ -26,20 +26,28 @@ int *get_exit_codes(char *exit_codes_str) {
 
     int *arr = malloc(sizeof(int) * count);
     if (!arr)
-    {
-        free(copy);
         return NULL;
-    }
 
     int i = 0;
-    char *token = strtok(start, ",");
-    while (token)
+    char *p = start;
+    while (*p && i < count)
     {
-        arr[i++] = atoi(token);
-        token = strtok(NULL, ",");
+        // saltar todo lo que no sea número
+        while (*p && (*p < '0' || *p > '9'))
+            p++;
+        if (!*p)
+            break;
+
+        int num = 0;
+        while (*p >= '0' && *p <= '9')
+        {
+            num = num * 10 + (*p - '0');
+            p++;
+        }
+
+        arr[i++] = num;
     }
 
-    free(copy);
     return arr;
 }
 

@@ -15,8 +15,21 @@ int main(int argc, char **argv, char **envp)
 	int n = get_number_of_program(argv[1]);
 	t_program_config programs[n + 1];
 	for (int i = 0; i < n; i++){
+        ft_printf("Empieza a iniciar el programa %i, de %i programas\n", i, n);
 		programs[i] = init_program_config_structs(argv[1], i);
-		ft_printf("Config: %s", programs[i].command);
+		printf("Config: command %s\n", programs[i].command);
+        printf("Config: numprocs %i\n", programs[i].numprocs);
+        printf("Config: autostart %i\n", programs[i].autostart);
+        printf("Config: exitcodes %i\n", programs[i].exitcodes[0]);
+        printf("Config: startretries %i\n", programs[i].startretries);
+        printf("Config: starttime %i\n", programs[i].starttime);
+        printf("Config: stopsignal %i\n", programs[i].stopsignal);
+        printf("Config: stoptiem %i\n", programs[i].stoptime);
+        printf("Config: stdout %s\n", programs[i].stdout_path);
+        printf("Config: stdeer %s\n", programs[i].stderr_path);
+        printf("Config: workingdir %s\n", programs[i].workingdir);
+        printf("Config: umask %s\n", programs[i].umask);
+        printf("----------------------------------------------------\n");
 	}
     // 2. Estructuras de datos básicas
     // 3. Lanzamiento simple de procesos
