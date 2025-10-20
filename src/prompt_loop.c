@@ -56,6 +56,5 @@ bool    prompt_loop(t_program_config *config)
     add_history(command);
     if (status_comand(config, command) == -1)
         return (false);
-    monitor_processes(config, command);
     return (true);
 }
