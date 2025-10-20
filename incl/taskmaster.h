@@ -78,7 +78,7 @@ typedef struct s_program_config
     mode_t                  umask;
     t_autorestart           autorestart;
     t_process               *process;
-    struct t_program_config *next;
+    struct s_program_config *next;
 }   t_program_config;
 
 extern char **environ;
@@ -89,7 +89,7 @@ extern volatile sig_atomic_t g_child_status_changed;
 //*** Process && Taskmaster ***/
 
 int     user_input_ready(void);
-void    init_process_test(t_program_config *config, char **envp);
+void    init_process_test(t_program_config *config, char **envp, int numb);
 void    init_process_info(t_program_config *config);
 void    taskmaster_main_loop(t_program_config *config);
 void    start_autostart_programs(t_program_config *config);
@@ -119,6 +119,7 @@ void    child_status_change(t_program_config *config);
 char*   substr(const char *src, int start, int length);
 int     ft_strcmp(char *s1, char *s2);
 size_t  ft_strlen(char *str);
+void    ft_free(t_program_config *config);
 
 //*** GNL ***/
 char	*ft_strdup(char *s1);

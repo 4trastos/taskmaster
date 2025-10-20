@@ -6,12 +6,10 @@ void    monitor_processes(t_program_config *config)
     t_program_config *current;
 
     current = config;
-    while (current)
+    while (current->next != NULL)
     {
         pthread_mutex_lock(&output_mutex);
         ft_printf("Estoy monitoreando config:\n");
-        ft_printf("[COMMAND] ( %s )\n", config->command);
-        ft_printf("[NAME] ( %s )\n", config->name);
         pthread_mutex_unlock(&output_mutex);
         
         // Lógica 1: Arranque
@@ -21,7 +19,7 @@ void    monitor_processes(t_program_config *config)
             launch_process(config);
         }
         // Lógica 2: Detención
-        if (current->process, current->process->pstate == STOPPING && current->process->pid > 0)
+        if (current->process && current->process->pstate == STOPPING && current->process->pid > 0)
         {
             // El estado deseado es STOPPING, y el PID está vivo
             stop_process(config->process->pid, config->stopsignal);

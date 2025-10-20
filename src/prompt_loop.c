@@ -34,9 +34,9 @@ int    status_comand(t_program_config *config, char *command)
         pthread_mutex_lock(&output_mutex);
         ft_printf("❌ Comando no reconocido. Use: [start] , [stop] o [restart] ❌\n");
         pthread_mutex_unlock(&output_mutex);
-        return (0);
+        return (-1);
     }
-    return (-1);
+    return (0);
 
 }
 
@@ -49,6 +49,9 @@ bool    prompt_loop(t_program_config *config)
         return (false);
     add_history(command);
     if (status_comand(config, command) == 0)
+    {
+        free(command);
         return (false);
+    }
     return (true);
 }

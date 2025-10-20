@@ -1,8 +1,9 @@
 #include "taskmaster.h"
 #include "ft_printf.h"
 
-void    init_process_test(t_program_config *config, char **envp)
+void    init_process_test(t_program_config *config, char **envp, int numb)
 {
+    (void)numb;
     int exitcodes[] = {0, 1};
 
     config->command = "./bin/test_davgalle";
