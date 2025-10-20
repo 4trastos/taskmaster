@@ -22,27 +22,21 @@ char	*no_last_space(char *str)
 int    status_comand(t_program_config *config, char *command)
 {
     if (ft_strcmp("start", command) == 0)
-        config->process->pstate = STARTING; // ❌ No inicia proceso real
-    // Debes hacer fork() y actualizar PID
+        config->process->pstate = STARTING;
     else if (ft_strcmp("stop", command) == 0)
-    {
         config->process->pstate = STOPPING;
-        g_child_status_changed = 1;
-    }
     else if (ft_strcmp("restart", command) == 0)
         config->process->pstate = STARTING;
     else if (ft_strcmp("exit", command) == 0)
-    {
         config->process->pstate = STOPPING;
-        return (-1);
-    }
     else
     {
         pthread_mutex_lock(&output_mutex);
         ft_printf("❌ Comando no reconocido. Use: [start] , [stop] o [restart] ❌\n");
         pthread_mutex_unlock(&output_mutex);
+        return (0);
     }
-    return (0);
+    return (-1);
 
 }
 
@@ -54,7 +48,7 @@ bool    prompt_loop(t_program_config *config)
     if (!command)
         return (false);
     add_history(command);
-    if (status_comand(config, command) == -1)
+    if (status_comand(config, command) == 0)
         return (false);
     return (true);
 }

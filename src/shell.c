@@ -51,7 +51,7 @@ void    start_autostart_programs(t_program_config *config)
     {
         config->process = process;
         config->process->start_time = time(NULL);
-        config->process->pstate = STARTING;
+        config->process->pstate = RUNNING;
         config->process->restart_count = 0;
         pthread_mutex_lock(&output_mutex);
         ft_printf("✅ Proceso '%s' iniciado con PID: %d\n", config->name, config->process->pid);
