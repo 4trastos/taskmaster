@@ -22,7 +22,8 @@ char	*no_last_space(char *str)
 int    status_comand(t_program_config *config, char *command)
 {
     if (ft_strcmp("start", command) == 0)
-        config->process->pstate = STARTING;
+        config->process->pstate = STARTING; // ❌ No inicia proceso real
+    // Debes hacer fork() y actualizar PID
     else if (ft_strcmp("stop", command) == 0)
     {
         config->process->pstate = STOPPING;
@@ -55,6 +56,6 @@ bool    prompt_loop(t_program_config *config)
     add_history(command);
     if (status_comand(config, command) == -1)
         return (false);
-    process_monitoring(config, command);
+    monitor_processes(config, command);
     return (true);
 }

@@ -34,6 +34,8 @@ void    child_status_change(t_program_config *config)
             config->process->pstate = STOPPED;
             if (config->autostart == true && (config->exitcodes[0] == 0 || config->exitcodes[1] == 1))
             {
+                // ❌ Esto no verifica si fue exit expected/unexpected
+                // ❌ No respeta autorestart: never/always/unexpected
                 config->process->pstate = STARTING;
                 config->process->restart_count++;
                 break;

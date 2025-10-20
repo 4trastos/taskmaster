@@ -1,7 +1,7 @@
 #include "taskmaster.h"
 #include "ft_printf.h"
 
-void    process_monitoring(t_program_config *config, char *command)
+void    monitor_processes(t_program_config *config, char *command)
 {
     (void)command;
     if (config->process && g_child_status_changed == 0)
@@ -14,6 +14,17 @@ void    process_monitoring(t_program_config *config, char *command)
     }
     return;
 }
+
+/* void monitor_processes(t_program_config *config) {
+    t_program_config *current = config;
+    while (current) {
+        if (current->process && current->process->pstate == RUNNING) {
+            // Verificar si el PID sigue vivo (kill(pid, 0))
+            // Si murió, manejar restart según config
+        }
+        current = current->next;
+    }
+} */
 
 /* El sistema de logging de Taskmaster es el mecanismo que el propio daemon
 utiliza para registrar sus decisiones internas, cambios de estado, y eventos de control. 

@@ -93,7 +93,7 @@ void    init_process_test(t_program_config *config, char **envp);
 void    init_process_info(t_program_config *config);
 void    taskmaster_main_loop(t_program_config *config);
 void    start_autostart_programs(t_program_config *config);
-void    process_monitoring(t_program_config *config, char *command);
+void    monitor_processes(t_program_config *config, char *command);
 
 //*** Parser logic ***/
 

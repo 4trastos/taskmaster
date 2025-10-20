@@ -5,7 +5,7 @@ RM = rm -f
 LIB = -lftprintf
 TEST = build_tests.sh
 
-SRC = src/main.c src/config.c src/logger.c src/process.c src/shell.c src/signal_handler.c aux/auxiliar.c \
+SRC = src/main.c src/config.c src/logger.c src/real_commands.c src/shell.c src/signal_handler.c aux/auxiliar.c \
 		src/prompt_loop.c src/parser.c aux/ft_atoi.c aux/cool_get_next_line.c aux/cool_get_next_line_utils.c
 OBJS = $(SRC:.c=.o)
 

@@ -67,6 +67,8 @@ void    taskmaster_main_loop(t_program_config *config)
         if (g_child_status_changed)
             child_status_change(config);
 
+        // ❌ FALTA: Verificar estado de procesos vivos cada X tiempo
+
         if (g_sigint_received)
         {
             g_sigint_received = 0;
