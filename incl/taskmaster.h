@@ -10,6 +10,8 @@
 # include <stdbool.h>
 # include <termios.h>
 # include <pthread.h>
+# include <fcntl.h>
+# include <poll.h>
 # include <sys/errno.h>
 # include <sys/types.h>
 # include <sys/fcntl.h>
@@ -44,6 +46,7 @@ typedef enum s_process_state
     STOPPING,           // En proceso de parada
     EXITED,             // Terminado (esperando decisión)
     FATAL,              // Error fatal (sin más reintentos)
+    STOPPED_PERM,       // Parada permanente
     UNKNOWN
 }   t_process_state;
 
@@ -95,7 +98,10 @@ void    taskmaster_main_loop(t_program_config *config);
 void    start_autostart_programs(t_program_config *config);
 void    monitor_processes(t_program_config *config);
 void    launch_process(t_program_config *config);
-void    stop_process(pid_t pid, int stopsignal);
+void    abort_restart(t_program_config *config);
+void    stop_process(pid_t pid, int stopsignal, int status);
+void    restart_policy(t_program_config *config, int state);
+void    stop_policy(pid_t pid, int stopsignal, int state);
 
 //*** Parser logic ***/
 
@@ -106,11 +112,12 @@ int     get_number_of_program(char *filename);
 void    init_signal(void);
 void    sigint_handler(int signum);
 void    sigchld_handler(int signum);
+void    set_stdin_nonblock(void);
 
 //*** Shell ***/
 
 char	*no_last_space(char *str);
-bool    prompt_loop(t_program_config *config);
+int     prompt_loop(t_program_config *config);
 int     status_comand(t_program_config *config, char *command);
 void    child_status_change(t_program_config *config);
 

@@ -22,7 +22,7 @@ void    monitor_processes(t_program_config *config)
         if (current->process && current->process->pstate == STOPPING && current->process->pid > 0)
         {
             // El estado deseado es STOPPING, y el PID está vivo
-            stop_process(config->process->pid, config->stopsignal);
+            stop_process(config->process->pid, config->stopsignal, 0);
             // NOTA: stop_process debe ser asíncrono y usar config->stoptime para SIGKILL
         }
         // Lógica 3: Comprobación de tiempo de vida (config->starttime)

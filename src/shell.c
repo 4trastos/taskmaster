@@ -3,62 +3,54 @@
 
 pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+void    child_status_change(t_program_config *config)
+{
+    pid_t   pid;
+    int     status;
+
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+    {
+        if (config->process && config->process->pid == pid)
+        {
+            pthread_mutex_lock(&output_mutex);
+            ft_printf("⚠️ Proceso '%s' (PID %d) ha terminado.\n", config->name, config->process->pid);
+            pthread_mutex_unlock(&output_mutex);
+
+            // --- 1. Proceso de Limpieza y Registro ---
+            stop_process(config->process->pid, config->stopsignal, status);
+            config->process->pid = 0;
+            config->process->pstate = STOPPED;
+            // --- 2. Aplicar Política de Reinicio ---
+            restart_policy(config, status);
+            // IMPORTANTE: Aquí se liberaría el proceso/limpiaría si NO va a haber reinicio.
+            // Para simplificar, asumimos que el monitor/free manejará la limpieza si pstate es STOPPED.
+            //break;
+        }
+        else
+        {
+            // if (WIFEXITED(status))
+            //     ft_printf("✅ Estado de salida normal: %d\n", WEXITSTATUS(status));
+            // else if (WIFSIGNALED(status))
+            //     ft_printf("✅ Terminado por señal: %d\n", WTERMSIG(status));
+        }
+    }
+
+    g_child_status_changed = 0;
+    // Lógica corregida para manejo de SIGCHLD:
+    rl_on_new_line();
+    rl_redisplay();
+}
+
 int user_input_ready(void)
 {
-    struct timeval  tv = {0, 0}; // Creamos un timeout de 0 segundos y 0 milesimas.
-    fd_set          fds;
+    struct timeval tv = {0, 50000}; // 50ms timeout
+    fd_set fds;
 
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
 
-    // select devuelve el número de file descriptors listos. Si select devuelve > 0, al menos un FD está listo.
-    if (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0)
-        return (FD_ISSET(STDIN_FILENO, &fds));
-    return (0);
+    return (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0);
 }
-
-void    start_autostart_programs(t_program_config *config)
-{
-    t_process   *process;
-    char        *argv_exec[2];
-    char        **envp_exec;
-
-    process = malloc(sizeof(t_process));
-    if (!process)
-        return;
-
-    argv_exec[0] = config->command;
-    argv_exec[1] = NULL;
-    envp_exec = (config->env) ? config->env : environ;
-
-    process->pid = fork();
-    if (process->pid == -1)
-    {
-        ft_printf("Error: Failed fork ( %s )\n", strerror(errno));
-        free (process);
-        return;
-    }
-    if (process->pid == 0)
-    {
-        if (execve(config->command, argv_exec, envp_exec) == -1)
-        {
-            ft_printf("Error: execve para %s ( %s )\n", config->name, strerror(errno));
-            free(process);
-            exit(EXIT_FAILURE);
-        }
-    }
-    else
-    {
-        config->process = process;
-        config->process->start_time = time(NULL);
-        config->process->pstate = RUNNING;
-        config->process->restart_count = 0;
-        pthread_mutex_lock(&output_mutex);
-        ft_printf("✅ Proceso '%s' iniciado con PID: %d\n", config->name, config->process->pid);
-        pthread_mutex_unlock(&output_mutex);
-    }
-}
-
 
 void    taskmaster_main_loop(t_program_config *config)
 {
@@ -66,8 +58,9 @@ void    taskmaster_main_loop(t_program_config *config)
     {
         if (g_child_status_changed)
             child_status_change(config);
-
+            
         monitor_processes(config);
+
         if (g_sigint_received)
         {
             g_sigint_received = 0;
@@ -78,11 +71,11 @@ void    taskmaster_main_loop(t_program_config *config)
         }
         if (user_input_ready())
         {
-            if (!prompt_loop(config))
+            if (prompt_loop(config) == -1)
                 break;
         }
         else
-            usleep(10000);
+            usleep(50000);
     }
     return;
 }

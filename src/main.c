@@ -4,6 +4,48 @@
 volatile sig_atomic_t g_sigint_received = 0;
 volatile sig_atomic_t g_child_status_changed = 0;
 
+void    start_autostart_programs(t_program_config *config)
+{
+    t_process   *process;
+    char        *argv_exec[2];
+    char        **envp_exec;
+
+    process = malloc(sizeof(t_process));
+    if (!process)
+        return;
+
+    argv_exec[0] = config->command;
+    argv_exec[1] = NULL;
+    envp_exec = (config->env) ? config->env : environ;
+
+    process->pid = fork();
+    if (process->pid == -1)
+    {
+        ft_printf("Error: Failed fork ( %s )\n", strerror(errno));
+        free (process);
+        return;
+    }
+    if (process->pid == 0)
+    {
+        if (execve(config->command, argv_exec, envp_exec) == -1)
+        {
+            ft_printf("Error: execve para %s ( %s )\n", config->name, strerror(errno));
+            free(process);
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        config->process = process;
+        config->process->start_time = time(NULL);
+        config->process->pstate = RUNNING;
+        config->process->restart_count = 0;
+        // pthread_mutex_lock(&output_mutex);
+        // ft_printf("✅ Proceso '%s' iniciado con PID: %d\n", config->name, config->process->pid);
+        // pthread_mutex_unlock(&output_mutex);
+    }
+}
+
 int main(int argc, char **argv, char **envp)
 {
     int                 numb_prog;

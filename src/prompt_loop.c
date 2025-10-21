@@ -27,8 +27,6 @@ int    status_comand(t_program_config *config, char *command)
         config->process->pstate = STOPPING;
     else if (ft_strcmp("restart", command) == 0)
         config->process->pstate = STARTING;
-    else if (ft_strcmp("exit", command) == 0)
-        config->process->pstate = STOPPING;
     else
     {
         pthread_mutex_lock(&output_mutex);
@@ -40,18 +38,27 @@ int    status_comand(t_program_config *config, char *command)
 
 }
 
-bool    prompt_loop(t_program_config *config)
+int    prompt_loop(t_program_config *config)
 {
     char    *command;
+    int     status;
+    int     value = 0;
     
     command = no_last_space(readline(PROMPT));
     if (!command)
-        return (false);
+        return (-1);    // Ctrl+D (EOF) debe salir del programa
     add_history(command);
-    if (status_comand(config, command) == 0)
+    if (ft_strcmp("exit", command) == 0)
     {
-        free(command);
-        return (false);
+        config->process->pstate = STOPPING;
+        value = -1;
     }
-    return (true);
+    else
+    {
+        status = status_comand(config, command);
+        if (status == 0)
+            value = 0;
+    }
+    free(command);
+    return (value);
 }
