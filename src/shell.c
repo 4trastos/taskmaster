@@ -1,9 +1,20 @@
 #include "taskmaster.h"
 #include "ft_printf.h"
 
+/* Rol Principal
+child_status_change (Monitor Asíncrono)	
+
+- Rol Principal:
+Reaccionar al evento: Limpieza inmediata, registro y decisión de qué hacer 
+después (restart_policy que cambia el pstate).	
+
+- ¿Cuándo se Ejecuta?:
+Inmediatamente después de recibir SIGCHLD (al comienzo de taskmaster_main_loop). 
+*/
+
 pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void    child_status_change(t_program_config *config)
+void    child_status_change(t_program_config *config)  // MONITOR ASINCRONO (SIGCHLD)
 {
     pid_t   pid;
     int     status;
@@ -28,10 +39,12 @@ void    child_status_change(t_program_config *config)
         }
         else
         {
-            // if (WIFEXITED(status))
-            //     ft_printf("✅ Estado de salida normal: %d\n", WEXITSTATUS(status));
-            // else if (WIFSIGNALED(status))
-            //     ft_printf("✅ Terminado por señal: %d\n", WTERMSIG(status));
+            pthread_mutex_lock(&output_mutex);
+            if (WIFEXITED(status))
+                ft_printf("✅ Estado de salida normal: %d\n", WEXITSTATUS(status));
+            else if (WIFSIGNALED(status))
+                ft_printf("✅ Terminado por señal: %d\n", WTERMSIG(status));
+            pthread_mutex_unlock(&output_mutex);
         }
     }
 

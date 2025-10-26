@@ -18,8 +18,6 @@ bool    is_expected_exit(int exit_status, t_program_config *config)
 
 void    stop_policy(pid_t pid, int stopsignal, int state)
 {
-    (void)pid;
-    (void)stopsignal;
     pthread_mutex_lock(&output_mutex);
 
     if (WIFEXITED(state))
@@ -29,8 +27,9 @@ void    stop_policy(pid_t pid, int stopsignal, int state)
     else
         ft_printf("✅ [LOG] Proceso PID %d terminó en estado desconocido.\n", pid);
 
-    if (stop_process != 0)
+    if (stop_process(pid, stopsignal, state) < 0)
         ft_printf("✅ [LOG] Señal de parada configurada: %s\n", strsignal(stopsignal));
+    pthread_mutex_unlock(&output_mutex);
     return;
 }
 
@@ -86,10 +85,10 @@ void    launch_process(t_program_config *config)
     return;
 }
 
-void    stop_process(pid_t pid, int stopsignal, int state)
+int    stop_process(pid_t pid, int stopsignal, int state)
 {
     (void)pid;
     (void)stopsignal;
     (void)state;
-    return;
+    return(0);
 }

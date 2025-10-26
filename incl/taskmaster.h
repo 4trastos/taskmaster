@@ -92,6 +92,7 @@ extern volatile sig_atomic_t g_child_status_changed;
 //*** Process && Taskmaster ***/
 
 int     user_input_ready(void);
+int     stop_process(pid_t pid, int stopsignal, int status);
 void    init_process_test(t_program_config *config, char **envp, int numb);
 void    init_process_info(t_program_config *config);
 void    taskmaster_main_loop(t_program_config *config);
@@ -99,7 +100,6 @@ void    start_autostart_programs(t_program_config *config);
 void    monitor_processes(t_program_config *config);
 void    launch_process(t_program_config *config);
 void    abort_restart(t_program_config *config);
-void    stop_process(pid_t pid, int stopsignal, int status);
 void    restart_policy(t_program_config *config, int state);
 void    stop_policy(pid_t pid, int stopsignal, int state);
 

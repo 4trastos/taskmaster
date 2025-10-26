@@ -1,7 +1,18 @@
 #include "taskmaster.h"
 #include "ft_printf.h"
 
-void    monitor_processes(t_program_config *config)
+/* Rol Principal
+monitor_processes (Monitor Síncrono)	
+
+- Rol Principal:
+Actuar sobre el estado: Ejecutar acciones 
+(arranque, parada forzada) basadas en el pstate actual	
+
+- ¿Cuándo se Ejecuta?:
+En cada iteración del bucle principal (taskmaster_main_loop). 
+*/
+
+void    monitor_processes(t_program_config *config) // MONITOR SINCRONO
 {
     t_program_config *current;
 
