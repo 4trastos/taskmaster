@@ -67,6 +67,30 @@ int user_input_ready(void)
     return (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0);
 }
 
+
+/* Ejemplo del Flujo
+Evento: El proceso muere.
+
+SIGCHLD se activa.
+
+child_status_change se llama: 
+El pstate se establece a STARTING (debido a restart_policy).
+
+taskmaster_main_loop continúa.
+
+monitor_processes se llama: 
+Ve que pstate == STARTING y que pid == 0.
+
+monitor_processes llama a launch_process(config) para 
+iniciar un nuevo proceso (la acción real).
+
+Si no tuvieramos child_status_change, monitor_processes
+no sabría inmediatamente que el proceso murió y tendría que 
+depender de verificaciones de kill(pid, 0), que son lentas
+y no "cosechan" al zombie. Tu diseño es más eficiente.<z
+*/
+
+
 void    taskmaster_main_loop(t_program_config *config)
 {
     while (1)
@@ -89,8 +113,8 @@ void    taskmaster_main_loop(t_program_config *config)
             if (prompt_loop(config) == -1)
                 break;
         }
-        else
-            usleep(50000);
+       else
+        usleep(50000);
     }
     return;
 }
