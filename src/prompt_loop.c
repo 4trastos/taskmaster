@@ -20,7 +20,7 @@ iniciar un nuevo proceso (la acción real).
 Si no tuvieramos child_status_change, monitor_processes
 no sabría inmediatamente que el proceso murió y tendría que 
 depender de verificaciones de kill(pid, 0), que son lentas
-y no "cosechan" al zombie. Tu diseño es más eficiente.
+y no "cosechan" al zombie. Tu diseño es más eficiente.<z
 */
 
 char	*no_last_space(char *str)
