@@ -10,6 +10,7 @@ SRC = \
 	aux/cool_get_next_line_utils.c \
 	aux/ft_atoi.c \
 	aux/parse_utils.c \
+	aux/config_utils.c \
 	src/config.c \
 	src/logger.c \
 	src/main.c \

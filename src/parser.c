@@ -150,7 +150,24 @@ static void fill_field(t_program_config *config, char *field, char *field_value)
     }
 }
 
-t_program_config init_program_config_structs(char * filename, int progam_index){
+static void get_env_block(int fd, int program_index, t_program_config* config){
+    char    *line;
+    int     i;
+
+    while (get_next_line(fd, &line)){
+        if (line[0] != '#' && line[0] != '\n' && ft_strlen(line) > 1 && check_line_is_useful(line) == 0){
+            if (check_is_name(line) == 0){
+                i++;
+            } else if (i = program_index + 1) {
+            }
+            if (i > program_index + 1){
+                break;
+            }
+        }
+    }
+}
+
+t_program_config init_program_config_structs(char * filename, int program_index){
     int                 fd;
     int                 i;
     char                *line;
@@ -160,23 +177,28 @@ t_program_config init_program_config_structs(char * filename, int progam_index){
 
     fd = open(filename, O_RDONLY);
     i = 0;
+    set_default_config(&config);
     while (get_next_line(fd, &line)){
         if (line[0] != '#' && line[0] != '\n' && ft_strlen(line) > 1 && check_line_is_useful(line) == 0){
 			//ft_printf("Line: %s\n", line);
             if (check_is_name(line) == 0){
                     i++;
-            } else if (i == progam_index + 1){
+            } else if (i == program_index + 1){
                 field = get_field(line);
-                field_value = get_field_value(line);
-				//ft_printf("Field: %s, Field Value: %s\n", field, field_value);
-                if (field != NULL){
-                    //ft_printf("FIELD: %s\n", field);
-                    fill_field(&config, field, field_value);
+                if ((ft_strcmp(field, "env") == 0)){
+                    get_env_block(fd, program_index, &config);
+                } else {
+                    field_value = get_field_value(line);
+                    //ft_printf("Field: %s, Field Value: %s\n", field, field_value);
+                    if (field != NULL){
+                        //ft_printf("FIELD: %s\n", field);
+                        fill_field(&config, field, field_value);
+                    }
+                    free(field_value);
                 }
                 free(field);
-                free(field_value);
             }
-            if (i > progam_index + 1){
+            if (i > program_index + 1){
                 break;
             }
         }

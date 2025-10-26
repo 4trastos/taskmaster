@@ -81,6 +81,9 @@ typedef struct s_process
 int get_number_of_program(char *filename);
 t_program_config init_program_config_structs(char * filename, int progam_index);
 
+//*** Config ***/
+void set_default_config(t_program_config* config);
+
 //*** comunications & signals ***/
 
 
