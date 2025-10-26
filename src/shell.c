@@ -19,6 +19,8 @@ void    child_status_change(t_program_config *config)  // MONITOR ASINCRONO (SIG
     pid_t   pid;
     int     status;
 
+    // Drenaje y Cosecha de Procesos (Reaping) *** IMPORTANTE ****
+
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
     {
         if (config->process && config->process->pid == pid)
