@@ -1,48 +1,31 @@
 NAME = taskmaster
-CC = gcc
-CFLAGS = -Wall -Werror -Wextra -g3 -Iincl
+CC = c++
+CFLAGS = -Wall -Werror -Wextra -Iincl -g3 -std=c++11 
 RM = rm -f
-LIB = -lftprintf
 
 SRC = \
-	aux/auxiliar.c \
-	aux/cool_get_next_line.c \
-	aux/cool_get_next_line_utils.c \
-	aux/ft_atoi.c \
-	aux/parse_utils.c \
-	aux/config_utils.c \
-	src/config.c \
-	src/logger.c \
-	src/main.c \
-	src/parser.c \
-	src/process.c \
-	src/shell.c \
-	src/signal_handler.c
+	src/main.cpp \
+	src/Program.cpp \
+	src/ConfigParser.cpp \
+	aux/parse_utils.cpp
+	
 
-OBJS = $(SRC:.c=.o)
-
-FT_PRINTF_DIR = lib/printf
-FT_PRINTF = $(FT_PRINTF_DIR)/libftprintf.a
+OBJTS = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(FT_PRINTF)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) -L$(FT_PRINTF_DIR) $(LIB) -lm
+$(NAME): $(OBJTS) $(FT_PRINTF)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJTS) -lm
 
-$(FT_PRINTF):
-	@make -C $(FT_PRINTF_DIR)
-
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJS)
-	@make clean -C $(FT_PRINTF_DIR)
+	$(RM) $(OBJTS)
 
 fclean: clean
 	$(RM) $(NAME)
-	@make fclean -C $(FT_PRINTF_DIR)
 
 re: fclean all
 
-.PHONY: all clean fclean re $(FT_PRINTF)
+.PHONY: all clean fclean re
