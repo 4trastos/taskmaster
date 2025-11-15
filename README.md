@@ -1,285 +1,243 @@
-# Taskmaster 🚀
+# TaskMaster - C++ Migration
 
-Un **job-control daemon** similar a supervisord para lanzar, supervisar y mantener procesos según una configuración definida.
+## 📋 Descripción
 
-## 📋 Tabla de Contenidos
-- [Descripción](#-descripción)
-- [Características](#-características)
-- [Requisitos](#-requisitos)
-- [Configuración](#-configuración)
-- [Uso](#-uso)
-- [Comandos de la Shell](#-comandos-de-la-shell)
-- [Estructura Técnica](#-estructura-técnica)
-- [Plan de Implementación](#-plan-de-implementación)
-- [Defensa y Pruebas](#-defensa-y-pruebas)
+TaskMaster es un supervisor de procesos similar a `supervisord`, migrado de C a C++ moderno.
 
-## 🎯 Descripción
+## 🏗️ Arquitectura del Proyecto
 
-Taskmaster es un daemon de control de procesos que permite:
-- **Supervisar** múltiples programas simultáneamente
-- **Reiniciar automáticamente** procesos caídos según políticas configurables
-- **Recargar configuración** en caliente sin interrumpir servicios
-- **Control interactivo** mediante una shell integrada
+### Clases Principales
 
-## ⭐ Características
+#### 1. **CConfigParser**
+- Parsea archivos YAML de configuración
+- Carga los programas y sus configuraciones
+- Maneja variables de entorno
 
-### ✅ Funcionalidades Principales
-- **Gestión de Procesos**: Lanzar, detener, reiniciar y supervisar procesos
-- **Políticas de Reinicio**: `always`, `never`, `unexpected`
-- **Shell Interactiva**: Comandos en tiempo real con historial
-- **Recarga en Caliente**: Aplicar cambios de configuración sin downtime
-- **Sistema de Logs**: Registro detallado de eventos
-- **Redirección de E/S**: Gestión de stdout/stderr a archivos
+#### 2. **CProgram**
+- Representa un programa a supervisar
+- Contiene configuración: comando, numprocs, autorestart, etc.
+- Maneja variables de entorno específicas del programa
 
-### 🔧 Características Técnicas
-- Soporte para múltiples instancias por programa
-- Detección precisa del estado de procesos
-- Manejo robusto de señales (SIGTERM, SIGKILL, SIGHUP)
-- Timeouts configurables para arranque y parada
-- Variables de entorno y directorio de trabajo personalizados
+#### 3. **CProcessManager**
+- Gestiona el ciclo de vida de los procesos
+- Maneja arranque, parada y reinicio
+- Implementa políticas de autorestart
+- Monitorea estados de procesos
 
-## 📋 Requisitos
+#### 4. **CSignalHandler**
+- Maneja señales del sistema (SIGINT, SIGCHLD, SIGHUP)
+- Uso de `std::atomic` para thread-safety
+- Permite comunicación asíncrona con el main loop
 
-### Requisitos Obligatorios
-- [x] Leer configuración (YAML/JSON)
-- [x] Lanzar y mantener procesos vivos
-- [x] Detección precisa del estado de procesos
-- [x] Recarga con SIGHUP
-- [x] Sistema de logs en archivo
-- [x] Shell de control interactiva
+#### 5. **CTaskmasterShell**
+- Shell interactiva con readline
+- Comandos: start, stop, restart, status, reload, exit
+- Procesamiento de comandos en tiempo real
 
-### Campos de Configuración por Programa
-```yaml
-cmd: "comando a ejecutar"
-numprocs: 1
-autostart: true
-autorestart: "unexpected"  # always, never, unexpected
-exitcodes: [0, 1]
-startretries: 3
-starttime: 5
-stopsignal: "SIGTERM"
-stoptime: 10
-stdout: "/path/to/stdout.log"
-stderr: "/path/to/stderr.log"
-env:
-  VAR1: "valor1"
-  VAR2: "valor2"
-workingdir: "/path/to/workdir"
-umask: "022"
+#### 6. **CLogger**
+- Sistema de logging thread-safe
+- Niveles: DEBUG, INFO, WARNING, ERROR, FATAL
+- Salida a consola y/o archivo
+
+#### 7. **Utils** (namespace)
+- Funciones auxiliares
+- Conversión de strings, validaciones
+- Utilidades de filesystem
+
+## 📁 Estructura de Archivos
+
+```
+taskmaster/
+├── incl/
+│   ├── ConfigParser.hpp
+│   ├── Program.hpp
+│   ├── ProcessManager.hpp
+│   ├── SignalHandler.hpp
+│   ├── TaskmasterShell.hpp
+│   ├── Logger.hpp
+│   ├── Utils.hpp
+│   └── parse_utils.hpp
+├── src/
+│   ├── main_new.cpp
+│   ├── ConfigParser.cpp
+│   ├── Program.cpp
+│   ├── ProcessManager.cpp
+│   ├── SignalHandler.cpp
+│   ├── TaskmasterShell.cpp
+│   ├── Logger.cpp
+│   └── Utils.cpp
+├── aux/
+│   └── parse_utils.cpp
+├── bin/                 (generado)
+│   └── taskmaster
+├── obj/                 (generado)
+└── Makefile
 ```
 
-## ⚙️ Configuración
+## 🔧 Compilación
 
-### Ejemplo de Configuración YAML
-```yaml
-programs:
-  webserver:
-    cmd: "python -m http.server 8000"
-    numprocs: 2
-    autostart: true
-    autorestart: "unexpected"
-    exitcodes: [0]
-    startretries: 3
-    starttime: 5
-    stopsignal: "SIGTERM"
-    stoptime: 10
-    stdout: "/var/log/webserver.out"
-    stderr: "/var/log/webserver.err"
-    workingdir: "/var/www"
-    env:
-      PORT: "8000"
-      HOST: "localhost"
+### Requisitos
+- g++ con soporte C++17
+- libreadline-dev
+- pthread
 
-  database:
-    cmd: "redis-server"
-    numprocs: 1
-    autostart: true
-    autorestart: "always"
-    # ... más configuraciones
+### Instalar dependencias (Ubuntu/Debian)
+```bash
+sudo apt-get install g++ libreadline-dev
+```
+
+### Compilar
+```bash
+make        # Compilar el proyecto
+make clean  # Limpiar objetos
+make fclean # Limpiar todo
+make re     # Recompilar
 ```
 
 ## 🚀 Uso
 
-### Iniciar Taskmaster
+### Ejecutar TaskMaster
 ```bash
-./taskmaster config.yaml
+./bin/taskmaster config.yaml
 ```
 
-### Comandos Básicos
-```bash
-# Iniciar un programa
-start webserver
+### Comandos Disponibles
 
-# Detener un programa  
-stop database
+En el prompt `TaskMaster> `:
 
-# Ver estado de todos los programas
-status
+- **start <program>** - Iniciar un programa
+- **stop <program>** - Detener un programa
+- **restart <program>** - Reiniciar un programa
+- **status [program]** - Ver estado de procesos
+- **reload** - Recargar configuración (pendiente)
+- **help** - Mostrar ayuda
+- **exit/quit** - Salir de TaskMaster
 
-# Reiniciar configuración
-reload
+### Ejemplo de Sesión
 
-# Salir de Taskmaster
-quit
+```
+$ ./bin/taskmaster config.yaml
+[2025-01-15 10:30:00] [INFO] === TaskMaster Starting ===
+[2025-01-15 10:30:00] [INFO] Loaded 2 programs from configuration
+[2025-01-15 10:30:00] [INFO] Starting autostart programs...
+[2025-01-15 10:30:00] [INFO] Process 'nginx' [0] started with PID: 1234
+
+TaskMaster> status
+=== Process Status ===
+nginx[0]: RUNNING (PID: 1234)
+app[0]: STOPPED
+
+TaskMaster> start app
+✅ Starting program: app
+
+TaskMaster> exit
+Shutting down TaskMaster...
+✅ TaskMaster shut down cleanly
 ```
 
-## ⌨️ Comandos de la Shell
+## 📝 Configuración YAML
 
-| Comando | Descripción |
-|---------|-------------|
-| `status` | Estado de todos los programas |
-| `status <programa>` | Estado específico de un programa |
-| `start <programa>` | Iniciar programa |
-| `stop <programa>` | Detener programa |
-| `restart <programa>` | Reiniciar programa |
-| `reload` | Recargar configuración |
-| `quit` | Salir de Taskmaster |
+Ejemplo de archivo de configuración:
 
-## 🏗️ Estructura Técnica
+```yaml
+programs:
+  nginx:
+    cmd: "/usr/sbin/nginx"
+    numprocs: 1
+    autostart: true
+    autorestart: unexpected
+    exitcodes: [0, 2]
+    startretries: 3
+    starttime: 5
+    stopsignal: "TERM"
+    stoptime: 10
+    stdout: "/var/log/nginx_stdout.log"
+    stderr: "/var/log/nginx_stderr.log"
+    workingdir: "/var/www"
+    umask: "022"
+    env:
+      PATH: "/usr/local/bin:/usr/bin"
+      USER: "www-data"
 
-### Arquitectura del Sistema
-```
-Taskmaster Core
-├── Config Parser (YAML/JSON)
-├── Process Manager
-├── Signal Handler
-├── Event Logger
-└── Control Shell
-```
-
-### Estados de Proceso
-```c
-typedef enum {
-    STOPPED,      // Proceso detenido
-    STARTING,     // Iniciando
-    RUNNING,      // Ejecutándose correctamente
-    BACKOFF,      // Reintentando arranque
-    STOPPING,     // En proceso de parada
-    EXITED,       // Terminado (esperando decisión)
-    FATAL,        // Error fatal (sin más reintentos)
-    UNKNOWN       // Estado desconocido
-} process_state_t;
+  myapp:
+    cmd: "./bin/myapp"
+    numprocs: 2
+    autostart: false
+    autorestart: always
+    exitcodes: [0]
+    startretries: 5
+    stdout: "/tmp/myapp.log"
 ```
 
-### Estructuras de Datos Principales
-```c
-typedef struct {
-    char *name;
-    char *cmd;
-    int numprocs;
-    bool autostart;
-    enum {AR_ALWAYS, AR_NEVER, AR_UNEXPECTED} autorestart;
-    int *exitcodes;
-    int n_exitcodes;
-    int startretries;
-    int starttime;
-    int stoptime;
-    int stopsignal;
-    char *stdout_path;
-    char *stderr_path;
-    char **env;
-    char *workingdir;
-    mode_t umask;
-} program_config_t;
+## 🔄 Diferencias C vs C++
 
-typedef struct {
-    pid_t pid;
-    int instance_id;
-    process_state_t state;
-    time_t start_time;
-    int restart_count;
-    int exit_code;
-    int stdout_fd;
-    int stderr_fd;
-} process_instance_t;
+### Mejoras Implementadas
+
+1. **Gestión de Memoria**
+   - ❌ C: `malloc/free` manual
+   - ✅ C++: RAII, smart pointers (próximamente)
+
+2. **Strings**
+   - ❌ C: `char*`, funciones manuales
+   - ✅ C++: `std::string`
+
+3. **Contenedores**
+   - ❌ C: Arrays estáticos, listas enlazadas manuales
+   - ✅ C++: `std::vector`, `std::map`
+
+4. **Encapsulación**
+   - ❌ C: Structs con funciones separadas
+   - ✅ C++: Clases con métodos
+
+5. **Thread Safety**
+   - ❌ C: `pthread_mutex_t`
+   - ✅ C++: `std::mutex`, `std::atomic`
+
+6. **Logging**
+   - ❌ C: `ft_printf` disperso
+   - ✅ C++: Clase `CLogger` centralizada
+
+## 🎯 Estado del Proyecto
+
+### ✅ Completado
+- Parser YAML
+- Estructuras de datos (Program, Config)
+- ProcessManager básico
+- SignalHandler
+- TaskmasterShell con readline
+- Logger thread-safe
+- Utils
+
+### 🚧 En Progreso
+- Timeouts de starttime/stoptime
+- SIGHUP reload de configuración
+- Redirección robusta de I/O
+
+### 📋 Pendiente
+- Múltiples instancias (numprocs > 1) - testing
+- Tests unitarios
+- Manejo de edge cases
+
+## 🐛 Debug
+
+Logs se guardan en: `/tmp/taskmaster.log`
+
+Para más verbosidad, cambiar nivel en `main_new.cpp`:
+```cpp
+CLogger::Init("/tmp/taskmaster.log", LogLevel::DEBUG);
 ```
 
-## 📅 Plan de Implementación
+## 📚 Referencias
 
-### Fase 1: Núcleo Básico (Semanas 1-2)
-- [ ] Parser de configuración YAML
-- [ ] Estructuras de datos básicas
-- [ ] Lanzamiento simple de procesos
-- [ ] Shell interactiva básica
+- [Supervisor Documentation](http://supervisord.org/)
+- [C++ Best Practices](https://github.com/cpp-best-practices)
+- [Modern C++ Design Patterns](https://refactoring.guru/design-patterns)
 
-### Fase 2: Supervisión (Semanas 3-4)
-- [ ] Manejo de señales (SIGCHLD)
-- [ ] Detección de estado de procesos
-- [ ] Políticas de reinicio básicas
-- [ ] Sistema de logging
+## 👥 Autores
 
-### Fase 3: Funcionalidades Avanzadas (Semanas 5-6)
-- [ ] Múltiples instancias (numprocs)
-- [ ] Recarga con SIGHUP
-- [ ] Timeouts y reintentos
-- [ ] Redirección de E/S robusta
+- **davgalle** - Versión C original
+- **nicgonza2** - Migración a C++
 
-### Fase 4: Pulido y Pruebas (Semanas 7-8)
-- [ ] Manejo de edge cases
-- [ ] Pruebas exhaustivas
-- [ ] Documentación
-- [ ] Preparación para defensa
+## 📄 Licencia
 
-## 🧪 Defensa y Pruebas
-
-### Casos de Prueba Esenciales
-```bash
-# 1. Proceso que falla inmediatamente
-./test_crash_program
-
-# 2. Proceso que produce mucho output
-./test_spam_output
-
-# 3. Proceso que ignora señales
-./test_ignore_signals
-
-# 4. Proceso con hijos
-./test_with_children
-```
-
-### Demostración para la Corrección
-1. **Inicio y Status**
-   ```bash
-   ./taskmaster demo_config.yaml
-   status
-   ```
-
-2. **Recarga en Caliente**
-   ```bash
-   # Modificar config.yaml
-   kill -HUP <taskmaster_pid>
-   status  # Ver cambios aplicados
-   ```
-
-3. **Resistencia a Fallos**
-   ```bash
-   kill -9 <program_pid>
-   status  # Ver reinicio automático
-   ```
-
-4. **Parada Ordenada**
-   ```bash
-   stop <program>
-   # Verificar que usa stopsignal + stoptime
-   ```
-
-## 🎓 Categoría del Proyecto
-
-**Taskmaster pertenece a:**
-### 🐧 **Proyectos de Especialización System & Kernel**
-
-**Razones:**
-- Manejo avanzado de procesos y señales
-- Uso intensivo de system calls
-- Gestión de grupos de procesos
-- Implementación de un daemon
-- Interacción con el kernel via /proc
-
-**Conocimientos clave aplicados:**
-- `fork()`, `execve()`, `waitpid()`
-- `sigaction()`, `kill()`, `setpgid()`
-- Gestión de file descriptors
-- Multiplexación I/O con `poll()`/`epoll`
-- Procesos y sesiones UNIX
-
----
+Proyecto educativo - 42 School
