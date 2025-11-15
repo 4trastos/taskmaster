@@ -3,6 +3,7 @@
 #include "Logger.hpp"
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h> 
 #include <fcntl.h>
 #include <cstring>
 #include <cerrno>

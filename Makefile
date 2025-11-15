@@ -8,24 +8,25 @@ LDFLAGS = -pthread
 SRC_DIR = src
 INCL_DIR = incl
 OBJ_DIR = obj
-BIN_DIR = bin
 
 # Target
-TARGET = $(BIN_DIR)/taskmaster
+TARGET = taskmaster
 
 # Source files
-SRCS = $(SRC_DIR)/main_new.cpp \
-       $(SRC_DIR)/ConfigParser.cpp \
-       $(SRC_DIR)/Program.cpp \
-       $(SRC_DIR)/ProcessManager.cpp \
-       $(SRC_DIR)/SignalHandler.cpp \
-       $(SRC_DIR)/TaskmasterShell.cpp \
-       $(SRC_DIR)/Logger.cpp \
-       $(SRC_DIR)/Utils.cpp \
-       aux/parse_utils.cpp
+SRCS = main.cpp \
+       ConfigParser.cpp \
+       Program.cpp \
+       ProcessManager.cpp \
+       SignalHandler.cpp \
+       TaskmasterShell.cpp \
+       Logger.cpp \
+       utils.cpp
+
+AUX_SRCS = parse_utils.cpp
 
 # Object files
-OBJS = $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
+OBJS = $(SRCS:%.cpp=$(OBJ_DIR)/$(SRC_DIR)/%.o) \
+       $(AUX_SRCS:%.cpp=$(OBJ_DIR)/aux/%.o)
 
 # Include paths
 INCLUDES = -I$(INCL_DIR)
@@ -37,6 +38,10 @@ YELLOW = \033[0;33m
 BLUE = \033[0;34m
 NC = \033[0m # No Color
 
+# Tell make where to find source files
+vpath %.cpp $(SRC_DIR)
+vpath %.cpp aux
+
 # Rules
 .PHONY: all clean fclean re directories
 
@@ -45,14 +50,20 @@ all: directories $(TARGET)
 directories:
 	@mkdir -p $(OBJ_DIR)/$(SRC_DIR)
 	@mkdir -p $(OBJ_DIR)/aux
-	@mkdir -p $(BIN_DIR)
 
 $(TARGET): $(OBJS)
 	@echo "$(BLUE)Linking $(TARGET)...$(NC)"
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET) $(LDFLAGS)
 	@echo "$(GREEN)✅ Build successful!$(NC)"
 
-$(OBJ_DIR)/%.o: %.cpp
+# Pattern rule for src files
+$(OBJ_DIR)/$(SRC_DIR)/%.o: %.cpp
+	@echo "$(YELLOW)Compiling $<...$(NC)"
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+# Pattern rule for aux files
+$(OBJ_DIR)/aux/%.o: %.cpp
 	@echo "$(YELLOW)Compiling $<...$(NC)"
 	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
@@ -63,7 +74,7 @@ clean:
 
 fclean: clean
 	@echo "$(RED)Cleaning binary...$(NC)"
-	@rm -rf $(BIN_DIR)
+	@rm -f $(TARGET)
 
 re: fclean all
 
@@ -74,9 +85,9 @@ debug:
 	@echo "CXXFLAGS: $(CXXFLAGS)"
 	@echo "LDFLAGS: $(LDFLAGS)"
 	@echo "TARGET: $(TARGET)"
-	@echo "SOURCES:"
-	@echo "$(SRCS)" | tr ' ' '\n'
 	@echo ""
+	@echo "OBJECTS:"
+	@echo "$(OBJS)" | tr ' ' '\n'
 
 help:
 	@echo "$(BLUE)=== TaskMaster Makefile ===$(NC)"

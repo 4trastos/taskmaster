@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cctype>
 #include <limits>
+#include <climits>
 #include <ctime>
 #include <sys/stat.h>
 #include <unistd.h>
