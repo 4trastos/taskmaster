@@ -66,6 +66,9 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "csignal": "cpp"
     }
 }

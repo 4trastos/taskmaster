@@ -105,6 +105,14 @@ bool CTaskmasterShell::CmdStart(const std::vector<std::string>& args) {
             int numprocs = program.GetConfig().numprocs;
             
             for (int i = 0; i < numprocs; ++i) {
+                ProcessInfo* info = m_process_manager->GetProcessInfo(program_name, i);
+                if (info) {
+                    info->restart_count = 0;
+                    CLogger::Info("Manual start of '" + program_name + 
+                                 "' [" + std::to_string(i) + 
+                                 "], restart counter reset to 0");
+                }
+                
                 m_process_manager->SetProcessState(program_name, i, 
                                                    ProcessState::STARTING);
             }
@@ -157,6 +165,13 @@ bool CTaskmasterShell::CmdRestart(const std::vector<std::string>& args) {
     for (const auto& program : *m_programs) {
         if (program.GetName() == program_name) {
             int numprocs = program.GetConfig().numprocs;
+            
+            for (int i = 0; i < numprocs; ++i) {
+                ProcessInfo* info = m_process_manager->GetProcessInfo(program_name, i);
+                if (info) {
+                    info->restart_count = 0;
+                }
+            }
             
             // Primero parar
             for (int i = 0; i < numprocs; ++i) {

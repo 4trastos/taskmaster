@@ -142,7 +142,6 @@ bool CProcessManager::LaunchProcess(const CProgram& program, int instance) {
     info.pid = pid;
     info.start_time = time(nullptr);
     info.state = ProcessState::RUNNING;
-    info.restart_count = 0;
     
     CLogger::Info("Process '" + program.GetName() + "' [" + 
                  std::to_string(instance) + "] started with PID: " + 
@@ -216,38 +215,59 @@ void CProcessManager::ApplyRestartPolicy(const CProgram& program,
     ProcessInfo& info = m_processes[key][0];
     const auto& cfg = program.GetConfig();
     
+    info.restart_count++;
+    
+    if (info.restart_count > cfg.startretries) {
+        info.state = ProcessState::FATAL;
+        CLogger::Warning("Process '" + program.GetName() + "' [" + 
+                        std::to_string(instance) + 
+                        "] reached max restart attempts (" + 
+                        std::to_string(cfg.startretries) + 
+                        "), stopping permanently");
+        return;
+    }
+    
     // Verificar si el autorestart es NEVER
     if (cfg.autorestart == CProgram::Autorestart::NEVER) {
         info.state = ProcessState::STOPPED;
+        CLogger::Info("Process '" + program.GetName() + "' [" + 
+                     std::to_string(instance) + 
+                     "] will not restart (autorestart=never)");
         return;
     }
     
     bool expected_exit = false;
+    int exit_code = -1;
     
     if (WIFEXITED(status)) {
-        int exit_code = WEXITSTATUS(status);
+        exit_code = WEXITSTATUS(status);
         expected_exit = IsExpectedExit(exit_code, cfg.exitcodes);
     }
     
     // Aplicar política según autorestart
     if (cfg.autorestart == CProgram::Autorestart::ALWAYS) {
         info.state = ProcessState::STARTING;
+        CLogger::Info("Process '" + program.GetName() + "' [" + 
+                     std::to_string(instance) + 
+                     "] will restart (autorestart=always), attempt " + 
+                     std::to_string(info.restart_count) + "/" + 
+                     std::to_string(cfg.startretries) + 
+                     ", exit_code=" + std::to_string(exit_code));
     } else if (cfg.autorestart == CProgram::Autorestart::UNEXPECTED) {
         if (!expected_exit) {
             info.state = ProcessState::STARTING;
+            CLogger::Info("Process '" + program.GetName() + "' [" + 
+                         std::to_string(instance) + 
+                         "] will restart (unexpected exit), attempt " + 
+                         std::to_string(info.restart_count) + "/" + 
+                         std::to_string(cfg.startretries) + 
+                         ", exit_code=" + std::to_string(exit_code));
         } else {
             info.state = ProcessState::STOPPED;
-        }
-    }
-    
-    // Verificar límite de reintentos
-    if (info.state == ProcessState::STARTING) {
-        if (info.restart_count < cfg.startretries) {
-            info.restart_count++;
-        } else {
-            info.state = ProcessState::STOPPED_PERM;
-            CLogger::Warning("Process '" + program.GetName() + 
-                           "' reached max restart attempts");
+            CLogger::Info("Process '" + program.GetName() + "' [" + 
+                         std::to_string(instance) + 
+                         "] will not restart (expected exit=" + 
+                         std::to_string(exit_code) + ")");
         }
     }
 }
