@@ -6,6 +6,8 @@
 #include <iostream>
 #include <unistd.h>
 
+#define PROMPT "TaskMaster> "
+
 class CTaskmaster {
 private:
     CConfigParser* m_config_parser;
@@ -87,7 +89,7 @@ public:
 private:
     void MainLoop() {
         CLogger::Info("Entering main loop");
-        
+
         while (m_running) {
             // 1. Manejar cambios de estado de hijos (SIGCHLD)
             if (CSignalHandler::IsChildStatusChanged()) {

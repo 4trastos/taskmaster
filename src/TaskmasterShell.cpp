@@ -333,7 +333,7 @@ bool CTaskmasterShell::UserInputReady() {
 
 int CTaskmasterShell::PromptLoop() {
     // Mostrar prompt
-    std::cout << PROMPT << std::flush;
+    //std::cout << PROMPT << std::flush;
     
     // Leer línea
     std::string line;
@@ -349,6 +349,8 @@ int CTaskmasterShell::PromptLoop() {
             return -1; // Exit requested
         }
     }
+
+    std::cout << PROMPT << std::flush;
     
     return 0;
 }

@@ -69,6 +69,8 @@
         "semaphore": "cpp",
         "stdio.h": "c",
         "stdlib.h": "c",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "codecvt": "cpp",
+        "cfenv": "cpp"
     }
 }
