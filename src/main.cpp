@@ -25,6 +25,7 @@ public:
     {
         // Inicializar logger
         CLogger::Init("/tmp/taskmaster.log", LogLevel::INFO);
+        CLogger::EnableConsoleLogging(false);
         CLogger::Info("=== TaskMaster Starting ===");
         
         // Cargar configuración
@@ -89,7 +90,8 @@ public:
 private:
     void MainLoop() {
         CLogger::Info("Entering main loop");
-
+        
+        std::cout << PROMPT << std::flush;
         while (m_running) {
             // 1. Manejar cambios de estado de hijos (SIGCHLD)
             if (CSignalHandler::IsChildStatusChanged()) {
